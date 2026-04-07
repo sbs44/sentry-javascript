@@ -363,7 +363,9 @@ module.exports = [
     name: '@sentry/cloudflare',
     path: 'packages/cloudflare/build/esm/index.js',
     import: createImport('withSentry', 'instrumentDurableObjectWithSentry', 'instrumentWorkflowWithSentry'),
+    ignore: [...builtinModules, ...nodePrefixedBuiltinModules],
     gzip: true,
+    limit: '50 KB',
   },
 ];
 
