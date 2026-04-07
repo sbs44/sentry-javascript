@@ -57,33 +57,35 @@ export function instrumentDurableObjectStorage(
             },
           },
           () => {
-            const teardown = async (): Promise<void> => {
-              // When setAlarm is called, store the current span context so that when the alarm
-              // fires later, it can link back to the trace that called setAlarm.
-              // We use the original (uninstrumented) storage (target) to avoid creating a span
-              // for this internal operation. The storage is deferred via waitUntil to not block.
-              if (methodName === 'setAlarm') {
-                await storeSpanContext(target, 'alarm');
-              }
-            };
-
             const result = (original as (...args: unknown[]) => unknown).apply(target, args);
 
-            if (!isThenable(result)) {
-              waitUntil?.(teardown());
+            // Only setAlarm needs teardown to store span context for trace linking
+            if (methodName === 'setAlarm') {
+              const teardown = async (): Promise<void> => {
+                // Store the current span context so that when the alarm fires later,
+                // it can link back to the trace that called setAlarm.
+                // We use the original (uninstrumented) storage (target) to avoid creating a span
+                // for this internal operation. The storage is deferred via waitUntil to not block.
+                await storeSpanContext(target, 'alarm');
+              };
 
-              return result;
+              if (!isThenable(result)) {
+                waitUntil?.(teardown());
+                return result;
+              }
+
+              return result.then(
+                res => {
+                  waitUntil?.(teardown());
+                  return res;
+                },
+                e => {
+                  throw e;
+                },
+              );
             }
 
-            return result.then(
-              res => {
-                waitUntil?.(teardown());
-                return res;
-              },
-              e => {
-                throw e;
-              },
-            );
+            return result;
           },
         );
       };

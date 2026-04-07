@@ -1,6 +1,6 @@
 import type { DurableObjectStorage } from '@cloudflare/workers-types';
 import { TraceFlags } from '@opentelemetry/api';
-import { getActiveSpan } from '@sentry/core';
+import { getActiveSpan, type SpanLink } from '@sentry/core';
 
 /** Storage key prefix for the span context that links consecutive method invocations */
 const SENTRY_TRACE_LINK_KEY_PREFIX = '__SENTRY_TRACE_LINK__';
@@ -10,16 +10,6 @@ export interface StoredSpanContext {
   traceId: string;
   spanId: string;
   sampled: boolean;
-}
-
-/** Span link structure for connecting traces */
-export interface SpanLink {
-  context: {
-    traceId: string;
-    spanId: string;
-    traceFlags: number;
-  };
-  attributes?: Record<string, string>;
 }
 
 /**

@@ -90,7 +90,10 @@ export function wrapMethodWithSentry<T extends OriginalMethod>(
             // but the scope still holds a reference to it (e.g., alarm handlers in Durable Objects)
             // For startNewTrace, always create a fresh client
             if (startNewTrace || !scopeClient?.getTransport()) {
-              const client = init({ ...wrapperOptions.options, ctx: context as unknown as ExecutionContext | undefined });
+              const client = init({
+                ...wrapperOptions.options,
+                ctx: context as unknown as ExecutionContext | undefined,
+              });
               scope.setClient(client);
               scopeClient = client;
             }

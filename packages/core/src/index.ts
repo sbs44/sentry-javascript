@@ -361,6 +361,7 @@ export type {
   XhrBreadcrumbHint,
 } from './types-hoist/breadcrumb';
 export type { ClientReport, Outcome, EventDropReason } from './types-hoist/clientreport';
+export type { SpanLink, SpanLinkJSON } from './types-hoist/link';
 export type {
   Context,
   Contexts,
