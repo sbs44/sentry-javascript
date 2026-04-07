@@ -54,6 +54,24 @@ function getLocalScopeData(): ScopeData {
   return globalScope;
 }
 
+/**
+ * Extracts only the serializable fields from ScopeData that can be passed to the native module.
+ * Removes non-serializable fields like eventProcessors (functions), span (complex object), and attachments.
+ */
+function getSerializableScopeData(scopeData: ScopeData): Partial<ScopeData> {
+  return {
+    tags: scopeData.tags,
+    attributes: scopeData.attributes,
+    extra: scopeData.extra,
+    user: scopeData.user,
+    contexts: scopeData.contexts,
+    level: scopeData.level,
+    fingerprint: scopeData.fingerprint,
+    propagationContext: scopeData.propagationContext,
+    conversationId: scopeData.conversationId,
+  };
+}
+
 type IntegrationInternal = { start: () => void; stop: () => void };
 
 function poll(enabled: boolean, clientOptions: ClientOptions): void {
@@ -62,7 +80,9 @@ function poll(enabled: boolean, clientOptions: ClientOptions): void {
     // We need to copy the session object and remove the toJSON method so it can be sent to the worker
     // serialized without making it a SerializedSession
     const session = currentSession ? { ...currentSession, toJSON: undefined } : undefined;
-    const scope = getLocalScopeData();
+    const scopeData = getLocalScopeData();
+    // Strip non-serializable fields from scope data before passing to native module
+    const scope = getSerializableScopeData(scopeData);
     // message the worker to tell it the main event loop is still running
     threadPoll(enabled, { session, scope, debugImages: getFilenameToDebugIdMap(clientOptions.stackParser) });
   } catch {

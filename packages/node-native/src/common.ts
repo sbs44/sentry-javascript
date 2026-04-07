@@ -40,6 +40,6 @@ export interface WorkerStartData extends ThreadBlockedIntegrationOptions {
 
 export interface ThreadState {
   session: Session | undefined;
-  scope: ScopeData;
+  scope: Partial<ScopeData>;
   debugImages: Record<string, string>;
 }
