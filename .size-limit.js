@@ -358,14 +358,28 @@ module.exports = [
     gzip: true,
     limit: '114 KB',
   },
-  // Cloudflare SDK (ESM) - informational only, no limit enforced
+  // Cloudflare SDK (ESM) - uncompressed, unminified to match `wrangler deploy --dry-run` output
   {
-    name: '@sentry/cloudflare',
+    name: '@sentry/cloudflare (withSentry)',
     path: 'packages/cloudflare/build/esm/index.js',
     import: createImport('withSentry', 'instrumentDurableObjectWithSentry', 'instrumentWorkflowWithSentry'),
     ignore: [...builtinModules, ...nodePrefixedBuiltinModules],
-    gzip: true,
-    limit: '50 KB',
+    gzip: false,
+    brotli: false,
+    limit: '365 KiB',
+    webpack: false,
+    modifyEsbuildConfig: function (config) {
+      config.minify = false;
+      config.minifyIdentifiers = false;
+      config.minifySyntax = false;
+      config.minifyWhitespace = false;
+      config.keepNames = true;
+      // Match wrangler's build settings
+      config.conditions = ['workerd', 'worker', 'browser'];
+      config.platform = 'browser';
+      config.format = 'esm';
+      return config;
+    },
   },
 ];
 
